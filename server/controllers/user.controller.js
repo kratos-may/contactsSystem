@@ -21,18 +21,18 @@ const saveUser = (req,res) =>{
         );
     }
     let user = new User({
-        name: body.name,
+        first_name: body.first_name,
+        last_name: body.last_name,
         email: body.email,
-        password: bcrypt.hashSync(body.password, 10),
-        role: body.role,
+        password: bcrypt.hashSync(body.password, 10)
     });
     //Welcome Email
     //config mail
     var transporter = nodemailer.createTransport({
         service: "Gmail",
         auth: {
-            user: "2becommercenodemail@gmail.com",
-            pass: "2b12345678",
+            user: "eduardoquerales7413@gmail.com",
+            pass: "eq1234567890",
         },
     });
 
@@ -89,34 +89,13 @@ const saveUser = (req,res) =>{
         });
     });
 }
-const getUserById = (req,res) =>{
-    let id = req.params.id;
-    User.findOne({ _id:id,state: true },(err,userDb) =>{
-        if( err){
-            return res.status(500).json({
-                ok: false,
-                err
-            });
-        }
-        if(!userDb){
-            return res.status(404).json({
-                ok: false,
-                err
-            });
-        }
-        res.json({
-            ok: true,
-            user: userDb,
-        })
-
-    });
-}
 
 async function update(req,res,next){
     try{
-        let body= _.pick(req.body,['name','email', 'password']);
+        let id = req.params.id;
+        let body= _.pick(req.body,['first_name','last_name','email', 'password']);
         let pas = body.password;
-        const reg0 = await User.findOne({_id: req.body._id});
+        const reg0 = await User.findOne({_id: id});
         if(pas){
             if(pas != reg0.password){
                 body.password = await bcrypt.hash(body.password,10);
@@ -132,81 +111,6 @@ async function update(req,res,next){
     }
 }
 
-const deleteUser = (req, res) =>{
-    let id = req.params.id;
-    User.findByIdAndUpdate(id,{state:false},{new: true,runValidators:true},(err,userDb)=>{
-        if( err){
-            return res.status(500).json({
-                ok: false,
-                err
-            });
-        }
-        if(!userDb ){
-            return res.status(404).json({
-                ok: false,
-                err: {
-                    message:"Usuario no encontrado"
-                }
-            });
-        }
-        res.json({
-            ok: true,
-            user: userDb,
-            message:"Usuario Eliminado satisfactoriamente"
-        })
-    });
-}
-
-const getAllUser = (req, res) =>{
-    let desde = req.query.desde || 0;
-    desde = Number(desde);
-
-    let limite = req.query.limite || 5;
-    limite = Number(limite);
-    User.find({ state: true }, "name email role image")
-        .skip(desde)
-        .limit(limite)
-        .exec((err, users) => {
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    err,
-                });
-            }
-
-            User.countDocuments({ state: true }, (err, count) => {
-                res.status(200).json({
-                    ok: true,
-                    totalUsers: count,
-                    users,
-                });
-            });
-        });
-}
-
-const searchUser=(req, res) =>{
-
-    let name = req.query.name;
-    let email = req.query.email;
-    let role = req.query.role;
-    let regexName = new RegExp(name, 'i');
-    let regexEmail = new RegExp(email, 'i');
-    let regexRole = new RegExp(role, 'i');
-    User.find({ name: regexName, email: regexEmail, role: regexRole, state:true})
-        .exec((err, users) => {
-            if (err) {
-                return res.status(500).json({
-                    ok: false,
-                    err,
-                });
-            }
-            res.json({
-                ok: true,
-                users
-            })
-        });
-}
-
 const login = (req, res) =>{
     let body = req.body;
     const { errors, isValid } = validateLoginInput(body);
@@ -215,7 +119,7 @@ const login = (req, res) =>{
         return res.status(400).json(errors);
     }
 
-    User.findOne({ email: body.email, state: true }, (err, userDB) => {
+    User.findOne({ email: body.email}, (err, userDB) => {
         if (err) {
             return res.status(500).json({
                 ok: false,
@@ -226,7 +130,7 @@ const login = (req, res) =>{
             return res.status(404).json({
                 ok: false,
                 err: {
-                    message: "Usuario no existe",
+                    message: "User does not exist",
                 },
             });
         }
@@ -235,7 +139,7 @@ const login = (req, res) =>{
             return res.status(400).json({
                 ok: false,
                 err: {
-                    message: "Usuario no existe o contraseña incorrecta",
+                    message: "User does not exist or Incorrect password",
                 },
             });
         }
@@ -255,10 +159,6 @@ const login = (req, res) =>{
 
 module.exports = {
     saveUser,
-    getUserById,
-    deleteUser,
-    getAllUser,
-    searchUser,
     login,
     update
 };

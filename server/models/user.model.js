@@ -1,26 +1,14 @@
 const mongoose = require("mongoose");
 const uniqueValidator = require("mongoose-unique-validator");
 
-let rolesValidates = {
-    values: ["ADMIN_ROLE", "USER_ROLE"],
-    message: "{VALUE} no es un rol válido",
-};
-
 let Schema = mongoose.Schema;
 
 let userSchema = new Schema({
-    name: {type: String,required: [true, "El nombre es necesario"],},
-    email: {type: String,required: [true, "El email es necesario"],unique:true},
-    password: {type: String,required: [true, "El password es obligatoria"]},
-    image: {type: String,required: false,},
-    role: { type: String, default: "ADMIN_ROLE", enum: rolesValidates },
-    state: {type: Boolean,default: true,},
-    createdAt: { type: Date, default: Date.now }
+    first_name: {type: String,required: [true, "the name is required"],},
+    last_name: {type: String,required: [true, "the last name is required"],},
+    email: {type: String,required: [true, "the email is required"],unique:true},
+    password: {type: String,required: [true, "the password is required"]},
 });
-
-userSchema.methods.setImgUrl = function setImgUrl(fileName){
-    this.image= `${process.env.HOST}:${process.env.PORT}/publics/${fileName}`
-}
 
 userSchema.methods.toJSON = function () {
     let user = this;
